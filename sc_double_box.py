@@ -198,7 +198,6 @@ def calculate_angle(dot1, dot2, dot3, dot4):
         plt.show()
 
 
-# TODO smoothing this class + add chamber bar plot
 
 
 class TailMotionAnalysis:
@@ -377,49 +376,52 @@ class TailMotionAnalysis:
 
     """
 
+  
+
+
     def plot_chamber_durations(self):
-
-        cumulative_durations = [0]
-        filtered_chamber_durations = []
-        filtered_chambers = []
-
-        p4 = list(zip(x_body, y_body))
-        chambers = [0]
-        chambers.append('SC' if is_fish_in_box_sc(p4, self.box_sc) else 'NSC' if is_fish_in_box_nsc(p4, self.box_nsc) else 'neither')
-
-        for i in range(len(self.chamber_durations)):
-            if self.chamber_durations[i] >= 0.1:
-                filtered_chamber_durations.append(self.chamber_durations[i])
-                filtered_chambers.append(chambers[i])
-                cumulative_durations.append(cumulative_durations[-1] + self.chamber_durations[i])
-
-        plt.figure(figsize=(10, 6))
-        plt.title('Chamber durations')
-        sc_durations = [d for d, c in zip(filtered_chamber_durations, filtered_chambers) if c == 'SC']
-        nsc_durations = [d for d, c in zip(filtered_chamber_durations, filtered_chambers) if c == 'NSC']
-        neither_durations = [d for d, c in zip(filtered_chamber_durations, filtered_chambers) if c == 'neither']
-        sc_starts = [cumulative_durations[i] for i, c in enumerate(filtered_chambers) if c == 'SC']
-        nsc_starts = [cumulative_durations[i] for i, c in enumerate(filtered_chambers) if c == 'NSC']
-        neither_starts = [cumulative_durations[i] for i, c in enumerate(filtered_chambers) if c == 'neither']
-
-        plt.barh(0, sc_durations, color='red', left=sc_starts)
-        plt.barh(1, nsc_durations, color='black', left=nsc_starts)
-        plt.barh(2, neither_durations, color='gray', left=neither_starts)
-        plt.yticks([0, 1, 2], ['SC', 'NSC', 'Neither'])
-        plt.xlabel('Time (seconds)')
-        plt.ylabel('Chambers')
-
         
+        total_time = len(self.point4) / 156
+        
+        segments = {'SC': [], 'NSC': [], 'Neither': []}
 
-        self.output_folder = 'TailMotionAnalysis_doubleBox'
-        os.makedirs(self.output_folder, exist_ok=True)
-        #plt.savefig(os.path.join(self.output_folder,'Chambers_bar_plot.png'))
+        # Initialize variables to keep track of current segment
+        current_box = None
+        segment_start_time = 0
+
+        # Iterate through the coordinates
+        for i, point in enumerate(self.point4):
+            if is_fish_in_box_sc(point, self.box_sc):
+                new_box = 'SC'
+            elif is_fish_in_box_nsc(point, self.box_nsc):
+                new_box = 'NSC'
+            else:
+                new_box = 'Neither'
+
+            if new_box != current_box:
+                if current_box is not None:
+                    # Add the current segment to the list
+                    segments[current_box].append((segment_start_time, i / 156))
+                    segment_start_time = i / 156
+                current_box = new_box
+
+        # Add the last segment to the list
+        segments[current_box].append((segment_start_time, total_time))
+
+        # Plot the horizontal bar plot
+        for box, segment_list in segments.items():
+            for segment in segment_list:
+                start_time, end_time = segment
+                duration = end_time - start_time
+                plt.barh(box, duration, left=start_time, color='red' if box == 'SC' else 'black' if box == 'NSC' else 'gray')
+
+        plt.xlabel('Time (seconds)')
+        plt.ylabel('Boxes')
+        plt.title('Count of Points in Different Boxes')
+
         plt.show()
 
-        return sc_starts, nsc_starts, neither_starts, sc_durations, nsc_durations, neither_durations
-
-
-
+       
 if __name__ == "__main__":
 
     #head_analysis = HeadOrientationAnalysis( x_fixed, y_fixed, x_hor, y_hor, x_head, y_head, x_body, y_body, x_box1, y_box1, x_box2, y_box2, x_box3, y_box3, x_box4, y_box4,
