@@ -1,0 +1,260 @@
+import os
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
+from matplotlib.lines import Line2D
+
+#TODO   find smarter why to convert frames to seconds, if no frames are dropped to likelihood constraints than results are best.
+#TODO   highlight freezing time after 3 seconds
+
+
+
+csv_file_path = r'coordinates/pred_coords_35000.csv'    
+df = pd.read_csv(csv_file_path)
+df = df.iloc[2:]
+
+likelihood_threshold = 0.0
+likelihood_cols      = [3, 6, 9, 12]
+mask                 = df.iloc[:, likelihood_cols].astype(float).ge(likelihood_threshold).all(axis=1)
+df_filtered          = df[mask]
+
+num_rows_dropped = len(df) - len(df_filtered)
+print(f"Number of rows dropped by likelihood threshold: {num_rows_dropped}")
+
+x_fixed   = df_filtered.iloc[2:, 1] .astype(float)
+y_fixed   = df_filtered.iloc[2:, 2] .astype(float)
+x_hor     = df_filtered.iloc[2:, 1] .astype(float) + 400
+y_hor     = df_filtered.iloc[2:, 2] .astype(float)
+x_head    = df_filtered.iloc[2:, 4] .astype(float)
+y_head    = df_filtered.iloc[2:, 5] .astype(float)
+x_body    = df_filtered.iloc[2:, 7] .astype(float)
+y_body    = df_filtered.iloc[2:, 8] .astype(float)
+x_tail    = df_filtered.iloc[2:, 10].astype(float)
+y_tail    = df_filtered.iloc[2:, 11].astype(float)
+x_tailend = df_filtered.iloc[2:, 13].astype(float)
+y_tailend = df_filtered.iloc[2:, 14].astype(float)
+
+
+
+# SC BOX
+
+x_box1, y_box1 = 380, 850  
+x_box2, y_box2 = 580, 850  
+x_box3, y_box3 = 580, 1150  
+x_box4, y_box4 = 380, 1150 
+
+df_filtered.loc[:, 'x_box1'] = x_box1
+df_filtered.loc[:, 'y_box1'] = y_box1
+df_filtered.loc[:, 'x_box2'] = x_box2
+df_filtered.loc[:, 'y_box2'] = y_box2
+df_filtered.loc[:, 'x_box3'] = x_box3
+df_filtered.loc[:, 'y_box3'] = y_box3
+df_filtered.loc[:, 'x_box4'] = x_box4
+df_filtered.loc[:, 'y_box4'] = y_box4
+
+
+
+def is_fish_in_box(point, box):
+
+    [(x1, y1), (x2, y2), (x3, y3), (x4, y4)] = box
+
+    if (x2 - x1) * (point[1] - y1) - (y2 - y1) * (point[0] - x1) < 0:
+        return False
+
+    if (x3 - x2) * (point[1] - y2) - (y3 - y2) * (point[0] - x2) < 0:
+        return False
+
+    if (x4 - x3) * (point[1] - y3) - (y4 - y3) * (point[0] - x3) < 0:
+        return False
+
+    if (x1 - x4) * (point[1] - y4) - (y1 - y4) * (point[0] - x4) < 0:
+        return False
+
+    # If the point passed all the checks, it is inside the square
+    return True
+
+def create_directory(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+def calculate_angle(point1, point2, point3, point4):
+    vec1 = np.array(point1) - np.array(point2)
+    vec2 = np.array(point3) - np.array(point4)
+
+    dot_product = np.dot(vec1, vec2)
+    magnitude   = np.linalg.norm(vec1) * np.linalg.norm(vec2)
+    angle_rad   = np.arccos(dot_product / magnitude)
+    angle_deg   = np.degrees(angle_rad)
+
+    return angle_deg
+
+class HeadOrientationAnalysis:
+
+    def analyze(self):
+
+        point1 = list(zip(x_fixed, y_fixed))
+        point2 = list(zip(x_hor, y_hor))
+        point3 = list(zip(x_head, y_head))
+        point4 = list(zip(x_body, y_body))
+
+        
+        box = [(x_box1, y_box1), (x_box2, y_box2), (x_box3, y_box3), (x_box4, y_box4)]
+
+        angles1 = []
+        angles2 = []
+        seconds = []
+
+        for i, (p1, p2, p3, p4) in enumerate(zip(point1, point2, point3, point4)):
+            
+            if is_fish_in_box(p4, box):
+                angles1.append(calculate_angle(p1, p2, p3, p4))
+                angles2.append(np.nan)
+            else:
+                angles2.append(calculate_angle(p1, p2, p3, p4))
+                angles1.append(np.nan)
+            seconds.append(i/158)
+
+        max_len = max(len(angles1), len(angles2))
+        angles1.extend([np.nan] * (max_len - len(angles1)))
+        angles2.extend([np.nan] * (max_len - len(angles2)))
+        seconds.extend(range(len(angles1), max_len))
+
+        n_bins = 40
+        bins   = np.linspace(0, 2 * np.pi, n_bins, endpoint=True)
+
+        hist1, _ = np.histogram(angles1, bins=bins)
+        hist2, _ = np.histogram(angles2, bins=bins)
+
+        fig, axs = plt.subplots(1, 2, subplot_kw={'projection': 'polar'})
+
+        axs[0].bar(bins[:-1], hist1, width=(bins[1] - bins[0]), bottom=0.0, color='black')
+        axs[0].set_yticklabels([])
+        axs[0].set_title('Zebrafish in SC')
+
+        axs[1].bar(bins[:-1], hist2, width=(bins[1] - bins[0]), bottom=0.0, color='red')
+        axs[1].set_yticklabels([])
+        axs[1].set_title('Zebrafish in NSC')
+
+        max_val = max(hist1.max(), hist2.max())
+        for ax in axs:
+            ax.set_ylim(0, max_val)
+
+        fig.subplots_adjust(wspace=0.5)
+
+        df_angles = pd.DataFrame({'Time (seconds)': seconds,'Angles_SC': angles1, 'Angles_NSC': angles2})
+
+        output_folder = 'HeadOrientationAnalysis'
+        create_directory(output_folder)
+        df_angles.to_csv(os.path.join(output_folder,'head_orientation_angles.csv'), index=False)
+
+        plt.savefig(os.path.join(output_folder,'head_orientation_analysis.png'))
+        plt.show()
+
+
+class TailMotionAnalysis:
+
+    def analyze(self):
+
+        point3 = list(zip(x_head, y_head))
+        point4 = list(zip(x_body, y_body))
+        point5 = list(zip(x_tail, y_tail))
+        point6 = list(zip(x_tailend, y_tailend))
+
+        box = [(x_box1, y_box1), (x_box2, y_box2), (x_box3, y_box3), (x_box4, y_box4)]
+
+        angles = []
+        seconds  = []
+        colors = []
+        chamber_changes = []
+        chamber_durations = []
+
+        prev_chamber = None
+        prev_time = None
+
+        for i, (p3, p4, p5, p6) in enumerate(zip(point3, point4, point5, point6)):
+
+            if is_fish_in_box(p4, box):
+                angles.append(calculate_angle(p3, p4, p5, p6))
+
+                colors.append('black')
+                current_chamber = 'SC'
+            else:
+                angles.append(calculate_angle(p3, p4, p5, p6))
+
+                colors.append('red')
+                current_chamber = 'NSC'
+
+            seconds.append(i/158)
+
+            if prev_chamber is not None:
+                if prev_chamber != current_chamber:
+                    chamber_changes.append(i/158)
+                    chamber_durations.append((i - prev_time)/158)
+                    prev_time = i
+                elif i == len(point3) - 1:
+                    chamber_durations.append((i - prev_time + 1)/158)
+            else:
+                prev_time = i
+
+            prev_chamber = current_chamber
+
+        periods = 1   # To which previous frame you want the current frame to be compared
+
+        angles_diff = pd.Series(angles).diff(periods=periods)
+
+        output_folder = 'TailMotionAnalysis'
+        create_directory(output_folder)
+
+
+        plt.figure(figsize=(10, 6))
+        plt.title('Tail motion')
+        plt.scatter(seconds, angles_diff, c=colors, s=7)
+
+        plt.xlabel('Time (seconds)')
+        plt.ylabel(r'$\Delta\theta$ compared to previous frame')
+        deg_format = FuncFormatter(lambda x, _: '{:g}°'.format(x))
+        plt.gca().yaxis.set_major_formatter(deg_format)
+
+        handles = [Line2D([0], [0], color=c, marker='o', markersize=7, linestyle='') for c in ['black', 'red']]
+        labels = ['Zebrafish in SC', 'Zebrafish in NSC']
+        plt.legend(handles, labels, loc='upper left')
+        plt.savefig(os.path.join(output_folder,'tail_motion_analysis.png'))
+        plt.show()
+        plt.close()  
+
+        chambers = ['SC'] * len(chamber_durations)
+        chambers = [chamber if i%2 == 0 else 'NSC' for i, chamber in enumerate(chambers)]
+        cumulative_durations = [0]
+
+        for i in range(len(chamber_durations)):
+            cumulative_durations.append(cumulative_durations[-1] + chamber_durations[i])
+
+        plt.figure(figsize=(10, 4))
+        plt.title('Chamber durations')
+        sc_durations = [d for d, c in zip(chamber_durations, chambers) if c == 'SC']
+        nsc_durations = [d for d, c in zip(chamber_durations, chambers) if c == 'NSC']
+        sc_starts = [cumulative_durations[i] for i, c in enumerate(chambers) if c == 'SC']
+        nsc_starts = [cumulative_durations[i] for i, c in enumerate(chambers) if c == 'NSC']
+        plt.barh(0, sc_durations, color='black', left=sc_starts)
+        plt.barh(1, nsc_durations, color='red', left=nsc_starts)
+        plt.yticks([0, 1], ['SC', 'NSC'])
+        plt.xlabel('Time (seconds)')
+        plt.ylabel('Chambers')
+
+        df_angles_diff = pd.DataFrame({'Time in seconds': seconds, 'Delta_theta': angles_diff, 'Color': colors})
+
+        
+        df_angles_diff.to_csv(os.path.join(output_folder,'tail_motion_angles_diff.csv'), index=False)
+
+        plt.savefig(os.path.join(output_folder,'Chambers_bar_plot.png'))
+        plt.show()
+
+
+if __name__ == "__main__":
+
+    head_analysis = HeadOrientationAnalysis()
+    head_analysis.analyze()
+
+    tail_analysis = TailMotionAnalysis()
+    tail_analysis.analyze()
