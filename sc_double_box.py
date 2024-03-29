@@ -416,7 +416,7 @@ class TailMotionAnalysis:
 
         with open(self.csv_file, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['Box', 'Start Time', 'End Time'])
+            writer.writerow(['Chamber', 'Start Time', 'End Time'])
             for box, segment_list in segments.items():
                 for segment in segment_list:
                     start_time, end_time = segment
@@ -431,8 +431,8 @@ class TailMotionAnalysis:
                 plt.barh(box, duration, left=start_time, color='green' if box == 'SC' else 'black' if box == 'NSC' else 'red')
 
         plt.xlabel('Time (seconds)')
-        plt.ylabel('Boxes')
-        plt.title('Count of Points in Different Boxes')
+        plt.ylabel('Chambers')
+        plt.title('Time spent in each chamber')
 
         self.output_folder = 'TailMotionAnalysis_doubleBox'
         os.makedirs(self.output_folder, exist_ok=True)
