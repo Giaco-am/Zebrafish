@@ -7,7 +7,7 @@ from matplotlib.lines import Line2D
 import csv
 from scipy import ndimage
 
-csv_file_path = r'coordinates/pred_coords_35000.csv'
+csv_file_path = r'coordinates/young_test.csv'
 df = pd.read_csv(csv_file_path)
 df = df.iloc[2:]
 
@@ -21,7 +21,7 @@ print(f"Number of rows dropped by likelihood threshold: {num_rows_dropped}")
 
 x_fixed = df_filtered.iloc[2:, 1].astype(float)
 y_fixed = df_filtered.iloc[2:, 2].astype(float)
-x_hor = df_filtered.iloc[2:, 1].astype(float) + 400
+x_hor = df_filtered.iloc[2:, 1].astype(float) + 200
 y_hor = df_filtered.iloc[2:, 2].astype(float)
 x_head = df_filtered.iloc[2:, 4].astype(float)
 y_head = df_filtered.iloc[2:, 5].astype(float)
@@ -33,10 +33,10 @@ x_tailend = df_filtered.iloc[2:, 13].astype(float)
 y_tailend = df_filtered.iloc[2:, 14].astype(float)
 
 # SC BOX
-x_box1, y_box1 = 380, 850
-x_box2, y_box2 = 580, 850
-x_box3, y_box3 = 580, 1150
-x_box4, y_box4 = 380, 1150
+x_box1, y_box1 = 650, 470
+x_box2, y_box2 = 780, 470
+x_box3, y_box3 = 780, 690
+x_box4, y_box4 = 650, 690
 
 df_filtered.loc[:, 'x_box1'] = x_box1
 df_filtered.loc[:, 'y_box1'] = y_box1
@@ -48,10 +48,10 @@ df_filtered.loc[:, 'x_box4'] = x_box4
 df_filtered.loc[:, 'y_box4'] = y_box4
 
 # NSC BOX
-x_box5, y_box5 = 380, 0
-x_box6, y_box6 = 580, 0
-x_box7, y_box7 = 580, 300
-x_box8, y_box8 = 380, 300
+x_box5, y_box5 = 650, 20
+x_box6, y_box6 = 780, 20
+x_box7, y_box7 = 780, 235
+x_box8, y_box8 = 650, 235
 
 df_filtered.loc[:, 'x_box5'] = x_box5
 df_filtered.loc[:, 'y_box5'] = y_box5
@@ -152,17 +152,17 @@ class HeadOrientationAnalysis:
                 self.angles1.append(np.nan)
                 self.angles2.append(np.nan)
                 self.angles3.append(calculate_angle(p1, p2, p3, p4))
-            self.seconds.append(i/156)
+            self.seconds.append(i/30)
         self.process_data()
         self.plot_data()
         self.save_data()
 
     def process_data(self):
-        max_len = max(len(self.angles1), len(self.angles2), len(self.angles3))
-        self.angles1.extend([np.nan] * (max_len - len(self.angles1)))
-        self.angles2.extend([np.nan] * (max_len - len(self.angles2)))
-        self.angles3.extend([np.nan] * (max_len - len(self.angles3)))
-        self.seconds.extend(range(len(self.angles1), max_len))
+        #max_len = max(len(self.angles1), len(self.angles2), len(self.angles3))
+        #self.angles1.extend([np.nan] * (max_len - len(self.angles1)))
+        #self.angles2.extend([np.nan] * (max_len - len(self.angles2)))
+        #self.angles3.extend([np.nan] * (max_len - len(self.angles3)))
+        #self.seconds.extend(range(len(self.angles1), max_len))
 
         self.n_bins = 40
         self.bins = np.linspace(0, 2 * np.pi, self.n_bins, endpoint=True)
@@ -170,6 +170,7 @@ class HeadOrientationAnalysis:
         self.hist1, _ = np.histogram(self.angles1, bins=self.bins)
         self.hist2, _ = np.histogram(self.angles2, bins=self.bins)
         self.hist3, _ = np.histogram(self.angles3, bins=self.bins)
+        print(self.angles3)
 
     def plot_data(self):
         fig, ax = plt.subplots(1, 1, subplot_kw={'projection': 'polar'})
@@ -188,7 +189,7 @@ class HeadOrientationAnalysis:
         fig.subplots_adjust(wspace=1.5)
 
     def save_data(self):
-        self.output_folder = 'HeadOrientationAnalysis_doubleBox'
+        self.output_folder = 'HeadOrientationAnalysis_doubleBox_young'
         os.makedirs(self.output_folder, exist_ok=True)
 
         df_angles = pd.DataFrame({'Time (seconds)': self.seconds,'Angles_SC': self.angles1, 'Angles_NSC': self.angles2, 'Angles_neither': self.angles3})
@@ -243,7 +244,7 @@ class TailMotionAnalysis:
                     self.stable_count += 1
                 else:
                     if self.stable_sequence_start is not None:
-                        if (i - self.stable_sequence_start) >= 3 * 156:
+                        if (i - self.stable_sequence_start) >= 3 * 30:
                             for j in range(self.stable_sequence_start, i):
                                 self.highlighted_points.append(j)
                         self.stable_sequence_start = None
@@ -258,15 +259,15 @@ class TailMotionAnalysis:
             else:
                 self.colors.append('gray')
 
-            self.seconds.append(i/156)
+            self.seconds.append(i/30)
 
             if self.prev_chamber is not None:
                 if self.prev_chamber != current_chamber:
-                    self.chamber_changes.append(i/156)
-                    self.chamber_durations.append((i - self.prev_time)/156)
+                    self.chamber_changes.append(i/30)
+                    self.chamber_durations.append((i - self.prev_time)/30)
                     self.prev_time = i
                 elif i == len(self.point3) - 1:
-                    self.chamber_durations.append((i - self.prev_time + 1)/156)
+                    self.chamber_durations.append((i - self.prev_time + 1)/30)
             else:
                 self.prev_time = i
 
@@ -340,7 +341,7 @@ class TailMotionAnalysis:
         handles.append(Line2D([0], [0], color='gray', linestyle='-', linewidth=0.5))
         labels = ['Zebrafish in SC', 'Zebrafish in NSC','Zebrafish in Neither', 'Freezing']
         plt.legend(handles, labels, loc='upper left')
-        self.output_folder = 'TailMotionAnalysis_doubleBox'
+        self.output_folder = 'TailMotionAnalysis_doubleBox_young'
         os.makedirs(self.output_folder, exist_ok=True)
 
         plt.savefig(os.path.join(self.output_folder,'tail_motion_analysis_smooth.png'))
@@ -352,7 +353,7 @@ class TailMotionAnalysis:
 
 
     def save_data(self):
-        self.output_folder = 'TailMotionAnalysis_doubleBox'
+        self.output_folder = 'TailMotionAnalysis_doubleBox_young'
         os.makedirs(self.output_folder, exist_ok=True)
 
         
@@ -373,7 +374,7 @@ class TailMotionAnalysis:
 
 
     def plot_chamber_durations(self):
-        total_time = len(self.point4) / 156
+        total_time = len(self.point4) / 30
         segments = {'SC': [], 'NSC': [], 'Neither': []}
 
         current_box = None
@@ -392,21 +393,21 @@ class TailMotionAnalysis:
             if new_box != current_box:
                 if current_box is not None:
         
-                    if (i / 156) - segment_start_time < 0.8 and previous_box is not None:
+                    if (i / 30) - segment_start_time < 0.8 and previous_box is not None:
         
-                        segments[previous_box][-1] = (segments[previous_box][-1][0], i / 156)
+                        segments[previous_box][-1] = (segments[previous_box][-1][0], i / 30)
                     else:
         
-                        segments[current_box].append((segment_start_time, i / 156))
+                        segments[current_box].append((segment_start_time, i / 30))
                         previous_box = current_box
-                    segment_start_time = i / 156
+                    segment_start_time = i / 30
                 current_box = new_box
 
         
         if current_box is not None:
             segments[current_box].append((segment_start_time, total_time))
 
-        self.output_folder = 'TailMotionAnalysis_doubleBox'
+        self.output_folder = 'TailMotionAnalysis_doubleBox_young'
         self.csv_file= 'Chamber_time.csv'   
         os.makedirs(self.output_folder, exist_ok=True)
 
@@ -434,7 +435,7 @@ class TailMotionAnalysis:
         plt.ylabel('Chambers')
         plt.title('Time spent in each chamber')
 
-        self.output_folder = 'TailMotionAnalysis_doubleBox'
+        self.output_folder = 'TailMotionAnalysis_doubleBox_young'
         os.makedirs(self.output_folder, exist_ok=True)
 
         plt.savefig(os.path.join(self.output_folder,'chamber_time.png'))
