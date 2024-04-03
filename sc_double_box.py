@@ -407,7 +407,7 @@ class TailMotionAnalysis:
             segments[current_box].append((segment_start_time, total_time))
 
         self.output_folder = 'TailMotionAnalysis_doubleBox'
-        self.csv_file= 'Chamber_time'   
+        self.csv_file= 'Chamber_time.csv'   
         os.makedirs(self.output_folder, exist_ok=True)
 
     
