@@ -7,6 +7,10 @@ from matplotlib.lines import Line2D
 import csv
 from scipy import ndimage
 
+# TODO automate selecting files from DLC outputs
+
+
+
 csv_file_path = r'coordinates/pred_coords_35000.csv'
 df = pd.read_csv(csv_file_path)
 df = df.iloc[2:]
