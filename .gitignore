@@ -5,3 +5,5 @@ HeadOrientationAnalysis_smooth
 previous code
 TailMotionAnalysis_smooth
 TailOrientationAnalysis_distance
+HeadOrientationAnalysis
+TailMotionAnalysis
