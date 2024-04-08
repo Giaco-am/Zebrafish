@@ -7,6 +7,6 @@ TailMotionAnalysis_smooth
 TailOrientationAnalysis_distance
 HeadOrientationAnalysis
 TailMotionAnalysis
-Adults_test
-coordinates
+Adults_test/
+coordinates/
 Zebrafish

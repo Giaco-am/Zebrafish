@@ -31,7 +31,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
     df_filtered = df[mask]
 
     num_rows_dropped = len(df) - len(df_filtered)
-    print(f"Number of rows dropped by likelihood threshold: {num_rows_dropped}")
+    #print(f"Number of rows dropped by likelihood threshold: {num_rows_dropped}")
 
     x_fixed = df_filtered.iloc[2:, 1].astype(float)
     y_fixed = df_filtered.iloc[2:, 2].astype(float)
