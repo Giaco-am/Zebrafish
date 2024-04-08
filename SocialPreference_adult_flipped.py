@@ -172,7 +172,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
                     self.angles2.append(np.nan)
                     self.angles3.append(calculate_angle(p1, p2, p3, p4))
                 self.seconds.append(i/30)
-            self.process_data()
+            #self.process_data()
             self.plot_and_save_data()
 
         def process_data(self):
@@ -190,6 +190,11 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             self.hist3, _ = np.histogram(self.angles3, bins=self.bins)
 
         def plot_and_save_data(self):
+
+            self.n_bins = 40
+            self.bins = np.linspace(0, 2 * np.pi, self.n_bins, endpoint=True)
+
+            self.hist1, _ = np.histogram(np.radians(self.angles1), bins=self.bins)
             fig, ax = plt.subplots(1, 1, subplot_kw={'projection': 'polar'})
             ax.bar(self.bins[:-1], self.hist1, width=(self.bins[1] - self.bins[0]), bottom=0.0, color='blue')
             ax.set_yticklabels([])

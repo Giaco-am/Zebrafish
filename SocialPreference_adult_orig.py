@@ -167,7 +167,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
                     self.angles2.append(np.nan)
                     self.angles3.append(calculate_angle(p1, p2, p3, p4))
                 self.seconds.append(i/30)
-            self.process_data()
+            #self.process_data()
             self.plot_and_save_data()
 
         def process_data(self):
@@ -188,19 +188,11 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
 
         def plot_and_save_data(self):
 
-            self.output_folder = 'Adults_orig'
-            os.makedirs(self.output_folder, exist_ok=True)
-            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'{subfolder_name}')
-            os.makedirs(sub_folder, exist_ok=True)
-
-            df_angles = pd.DataFrame({'Time (seconds)': self.seconds, 'Angles_SC': self.angles1, 'Angles_NSC': self.angles2, 'Angles_neither': self.angles3})
-            df_angles.to_csv(os.path.join(sub_folder, 'head_orientation_angles.csv'), index=False)
-            print(self.angles1)
-
+           
             self.n_bins = 40
             self.bins = np.linspace(0, 2 * np.pi, self.n_bins, endpoint=True)
 
-            self.hist1, _ = np.histogram(self.angles1, bins=self.bins)
+            self.hist1, _ = np.histogram(np.radians(self.angles1), bins=self.bins)
     
             fig, ax = plt.subplots(1, 1, subplot_kw={'projection': 'polar'})
             ax.bar(self.bins[:-1], self.hist1, width=(self.bins[1] - self.bins[0]), bottom=0.0, color='blue')
@@ -210,13 +202,13 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             ax.set_ylim(0, max_val)
 
             
-            #self.output_folder = 'Adults_orig'
-            #os.makedirs(self.output_folder, exist_ok=True)
-            #sub_folder = os.path.join(self.output_folder, 'SocialPref', f'{subfolder_name}')
-            #os.makedirs(sub_folder, exist_ok=True)
+            self.output_folder = 'Adults_orig'
+            os.makedirs(self.output_folder, exist_ok=True)
+            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'{subfolder_name}')
+            os.makedirs(sub_folder, exist_ok=True)
             
-            #df_angles = pd.DataFrame({'Time (seconds)': self.seconds, 'Angles_SC': self.angles1, 'Angles_NSC': self.angles2, 'Angles_neither': self.angles3})
-            #df_angles.to_csv(os.path.join(sub_folder, 'head_orientation_angles.csv'), index=False)
+            df_angles = pd.DataFrame({'Time (seconds)': self.seconds, 'Angles_SC': self.angles1, 'Angles_NSC': self.angles2, 'Angles_neither': self.angles3})
+            df_angles.to_csv(os.path.join(sub_folder, 'head_orientation_angles.csv'), index=False)
 
             plt.savefig(os.path.join(sub_folder, 'head_orientation_analysis.png'))
             plt.close()
