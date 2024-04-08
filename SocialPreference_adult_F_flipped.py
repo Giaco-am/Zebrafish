@@ -286,7 +286,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             #self.process_data()
             self.plot_tail_motion_smooth()
             self.save_data()
-            self.plot_chamber_durations()
+            #self.plot_chamber_durations()
 
         def process_data(self):
             max_len = max(len(self.angles1), len(self.angles2), len(self.angles3))
@@ -377,7 +377,14 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
 
         
 
-            df_angles = pd.DataFrame({'Time (seconds)': self.seconds, 'Angle difference':  np.abs(self.angles_diff)})
+            color_to_location = {'blue': 'SC', 'orange': 'NSC', 'gray': 'Neither'}
+            locations = [color_to_location[color] for color in self.colors]
+
+            df_angles = pd.DataFrame({
+                'Time (seconds)': self.seconds, 
+                'Angle difference':  np.abs(self.angles_diff),
+                'Location': locations  
+            })
             df_angles.to_csv(os.path.join(sub_folder,'tail_motion_angles.csv'), index=False)
 
             
@@ -463,9 +470,9 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
         
     if __name__ == "__main__":
 
-        head_analysis = HeadOrientationAnalysis( x_fixed, y_fixed, x_hor, y_hor, x_head, y_head, x_body, y_body, x_box1, y_box1, x_box2, y_box2, x_box3, y_box3, x_box4, y_box4,
-                                            x_box5, y_box5, x_box6, y_box6, x_box7, y_box7, x_box8, y_box8)
-        head_analysis.analyze()
+        #head_analysis = HeadOrientationAnalysis( x_fixed, y_fixed, x_hor, y_hor, x_head, y_head, x_body, y_body, x_box1, y_box1, x_box2, y_box2, x_box3, y_box3, x_box4, y_box4,
+        #                                    x_box5, y_box5, x_box6, y_box6, x_box7, y_box7, x_box8, y_box8)
+        #head_analysis.analyze()
 
         tail_analysis = TailMotionAnalysis( x_head, y_head, x_body, y_body, x_tail, y_tail, x_tailend, y_tailend, x_box1, y_box1, x_box2, y_box2, x_box3, y_box3, x_box4, y_box4,
                                            x_box5, y_box5, x_box6, y_box6, x_box7, y_box7, x_box8, y_box8)

@@ -375,7 +375,14 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
 
         
 
-            df_angles = pd.DataFrame({'Time (seconds)': self.seconds, 'Angle difference':  np.abs(self.angles_diff)})
+            color_to_location = {'blue': 'SC', 'orange': 'NSC', 'gray': 'Neither'}
+            locations = [color_to_location[color] for color in self.colors]
+
+            df_angles = pd.DataFrame({
+                'Time (seconds)': self.seconds, 
+                'Angle difference':  np.abs(self.angles_diff),
+                'Location': locations  
+            })
             df_angles.to_csv(os.path.join(sub_folder,'tail_motion_angles.csv'), index=False)
 
             
