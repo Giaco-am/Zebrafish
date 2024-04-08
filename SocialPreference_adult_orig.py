@@ -8,7 +8,6 @@ import csv
 from scipy import ndimage
 
 
-#csv_file_path = r'coordinates\Adults F iso 1 spDLC_resnet50_social isolationApr3shuffle1_110000.csv'
 coordinates_path = r'coordinates_orig'
 results_path = r'Adults_orig\SocialPref'
 
@@ -32,6 +31,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
 
     num_rows_dropped = len(df) - len(df_filtered)
     #print(f"Number of rows dropped by likelihood threshold: {num_rows_dropped}")
+    print(f"Processing {subfolder_name}...")
 
     x_fixed = df_filtered.iloc[2:, 1].astype(float)
     y_fixed = df_filtered.iloc[2:, 2].astype(float)
@@ -184,7 +184,23 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             self.hist2, _ = np.histogram(self.angles2, bins=self.bins)
             self.hist3, _ = np.histogram(self.angles3, bins=self.bins)
 
+            
+
         def plot_and_save_data(self):
+
+            self.output_folder = 'Adults_orig'
+            os.makedirs(self.output_folder, exist_ok=True)
+            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'{subfolder_name}')
+            os.makedirs(sub_folder, exist_ok=True)
+
+            df_angles = pd.DataFrame({'Time (seconds)': self.seconds, 'Angles_SC': self.angles1, 'Angles_NSC': self.angles2, 'Angles_neither': self.angles3})
+            df_angles.to_csv(os.path.join(sub_folder, 'head_orientation_angles.csv'), index=False)
+            print(self.angles1)
+
+            self.n_bins = 40
+            self.bins = np.linspace(0, 2 * np.pi, self.n_bins, endpoint=True)
+
+            self.hist1, _ = np.histogram(self.angles1, bins=self.bins)
     
             fig, ax = plt.subplots(1, 1, subplot_kw={'projection': 'polar'})
             ax.bar(self.bins[:-1], self.hist1, width=(self.bins[1] - self.bins[0]), bottom=0.0, color='blue')
@@ -194,12 +210,13 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             ax.set_ylim(0, max_val)
 
             
-            self.output_folder = 'Adults_orig'
-            os.makedirs(self.output_folder, exist_ok=True)
-            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'{subfolder_name}')
-            os.makedirs(sub_folder, exist_ok=True)
-            df_angles = pd.DataFrame({'Time (seconds)': self.seconds, 'Angles_SC': self.angles1, 'Angles_NSC': self.angles2, 'Angles_neither': self.angles3})
-            df_angles.to_csv(os.path.join(sub_folder, 'head_orientation_angles.csv'), index=False)
+            #self.output_folder = 'Adults_orig'
+            #os.makedirs(self.output_folder, exist_ok=True)
+            #sub_folder = os.path.join(self.output_folder, 'SocialPref', f'{subfolder_name}')
+            #os.makedirs(sub_folder, exist_ok=True)
+            
+            #df_angles = pd.DataFrame({'Time (seconds)': self.seconds, 'Angles_SC': self.angles1, 'Angles_NSC': self.angles2, 'Angles_neither': self.angles3})
+            #df_angles.to_csv(os.path.join(sub_folder, 'head_orientation_angles.csv'), index=False)
 
             plt.savefig(os.path.join(sub_folder, 'head_orientation_analysis.png'))
             plt.close()
@@ -438,13 +455,16 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             self.csv_file= os.path.join(sub_folder, self.csv_file)
 
 
+            flat_segments = [(box, start, end) for box, segment_list in segments.items() for start, end in segment_list]
+
+
+            sorted_segments = sorted(flat_segments, key=lambda x: x[1])
+
             with open(self.csv_file, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(['Chamber', 'Start Time', 'End Time'])
-                for box, segment_list in segments.items():
-                    for segment in segment_list:
-                        start_time, end_time = segment
-                        writer.writerow([box, start_time, end_time])
+                for box, start_time, end_time in sorted_segments:
+                    writer.writerow([box, start_time, end_time])
 
 
             

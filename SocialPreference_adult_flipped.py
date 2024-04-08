@@ -34,7 +34,9 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
     df_filtered = df[mask]
 
     num_rows_dropped = len(df) - len(df_filtered)
-    print(f"Number of rows dropped by likelihood threshold: {num_rows_dropped}")
+    #print(f"Number of rows dropped by likelihood threshold: {num_rows_dropped}")
+
+    print(f"Processing {subfolder_name}...")
 
     x_fixed = df_filtered.iloc[2:, 1].astype(float)
     y_fixed = df_filtered.iloc[2:, 2].astype(float)
@@ -441,13 +443,16 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             self.csv_file= os.path.join(sub_folder, self.csv_file)
 
 
+            flat_segments = [(box, start, end) for box, segment_list in segments.items() for start, end in segment_list]
+
+            # Sort the segments by start time
+            sorted_segments = sorted(flat_segments, key=lambda x: x[1])
+
             with open(self.csv_file, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(['Chamber', 'Start Time', 'End Time'])
-                for box, segment_list in segments.items():
-                    for segment in segment_list:
-                        start_time, end_time = segment
-                        writer.writerow([box, start_time, end_time])
+                for box, start_time, end_time in sorted_segments:
+                    writer.writerow([box, start_time, end_time])
 
 
             
