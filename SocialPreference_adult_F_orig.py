@@ -408,7 +408,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
                 if new_box != current_box:
                     if current_box is not None:
             
-                        if (i / 30) - segment_start_time < 0.8 and previous_box is not None:
+                        if (i / 30) - segment_start_time < 5 and previous_box is not None:
             
                             segments[previous_box][-1] = (segments[previous_box][-1][0], i / 30)
                         else:
