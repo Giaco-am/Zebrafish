@@ -158,11 +158,7 @@ class HeadOrientationAnalysis:
         self.save_data()
 
     def process_data(self):
-        #max_len = max(len(self.angles1), len(self.angles2), len(self.angles3))
-        #self.angles1.extend([np.nan] * (max_len - len(self.angles1)))
-        #self.angles2.extend([np.nan] * (max_len - len(self.angles2)))
-        #self.angles3.extend([np.nan] * (max_len - len(self.angles3)))
-        #self.seconds.extend(range(len(self.angles1), max_len))
+        
 
         self.n_bins = 40
         self.bins = np.linspace(0, 2 * np.pi, self.n_bins, endpoint=True)
@@ -170,7 +166,7 @@ class HeadOrientationAnalysis:
         self.hist1, _ = np.histogram(self.angles1, bins=self.bins)
         self.hist2, _ = np.histogram(self.angles2, bins=self.bins)
         self.hist3, _ = np.histogram(self.angles3, bins=self.bins)
-        print(self.angles3)
+        
 
     def plot_data(self):
         fig, ax = plt.subplots(1, 1, subplot_kw={'projection': 'polar'})

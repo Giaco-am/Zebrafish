@@ -7,21 +7,12 @@ from matplotlib.lines import Line2D
 import csv
 from scipy import ndimage
 
-# TODO automate selecting files from DLC outputs
-
-
-
-
-
-
-
 
 #csv_file_path = r'coordinates\Adults F iso 1 spDLC_resnet50_social isolationApr3shuffle1_110000.csv'
 coordinates_path = r'coordinates_orig'
 
-# Iterate through all the CSV files in the folder
+
 for index,csv_file in enumerate(os.listdir(coordinates_path)):
-    # Get the full path to the CSV file
     csv_file_path = os.path.join(coordinates_path, csv_file)
 
     subfolder_name = ' '.join(csv_file.split(' ')[2:4])
@@ -173,8 +164,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
                     self.angles3.append(calculate_angle(p1, p2, p3, p4))
                 self.seconds.append(i/30)
             self.process_data()
-            self.plot_data()
-            self.save_data()
+            self.plot_and_save_data()
 
         def process_data(self):
             max_len = max(len(self.angles1), len(self.angles2), len(self.angles3))
@@ -190,39 +180,25 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             self.hist2, _ = np.histogram(self.angles2, bins=self.bins)
             self.hist3, _ = np.histogram(self.angles3, bins=self.bins)
 
-        def plot_data(self):
+        def plot_and_save_data(self):
+    
             fig, ax = plt.subplots(1, 1, subplot_kw={'projection': 'polar'})
             ax.bar(self.bins[:-1], self.hist1, width=(self.bins[1] - self.bins[0]), bottom=0.0, color='blue')
             ax.set_yticklabels([])
             ax.set_title(f'F_{subfolder_name}')
-            #axs[1].bar(self.bins[:-1], self.hist2, width=(self.bins[1] - self.bins[0]), bottom=0.0, color='orange')
-            #axs[1].set_yticklabels([])
-            #axs[1].set_title('Zebrafish in NSC')
-            #axs[2].bar(self.bins[:-1], self.hist3, width=(self.bins[1] - self.bins[0]), bottom=0.0, color='gray')
-            #axs[2].set_yticklabels([])
-            #axs[2].set_title('Zebrafish in neither SC nor NSC')
-            #max_val = max(self.hist1.max(), self.hist2.max(), self.hist3.max())
             max_val = self.hist1.max()
-
-
-
             ax.set_ylim(0, max_val)
-            #fig.subplots_adjust(wspace=1.5)
 
-        def save_data(self):
+            
             self.output_folder = 'Adults_orig'
             os.makedirs(self.output_folder, exist_ok=True)
-
             sub_folder = os.path.join(self.output_folder, 'SocialPref', f'F_{subfolder_name}')
-            #sub_folder = os.path.join(self.output_folder, 'socialPref', 'F_iso1')
             os.makedirs(sub_folder, exist_ok=True)
-
             df_angles = pd.DataFrame({'Time (seconds)': self.seconds, 'Angles_SC': self.angles1, 'Angles_NSC': self.angles2, 'Angles_neither': self.angles3})
             df_angles.to_csv(os.path.join(sub_folder, 'head_orientation_angles.csv'), index=False)
 
             plt.savefig(os.path.join(sub_folder, 'head_orientation_analysis.png'))
             plt.close()
-            #plt.show()
 
 
 
@@ -491,5 +467,5 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
         head_analysis.analyze()
 
         tail_analysis = TailMotionAnalysis( x_head, y_head, x_body, y_body, x_tail, y_tail, x_tailend, y_tailend, x_box1, y_box1, x_box2, y_box2, x_box3, y_box3, x_box4, y_box4,
-                                            x_box5, y_box5, x_box6, y_box6, x_box7, y_box7, x_box8, y_box8)
+                                           x_box5, y_box5, x_box6, y_box6, x_box7, y_box7, x_box8, y_box8)
         tail_analysis.analyze()
