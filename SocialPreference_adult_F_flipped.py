@@ -10,13 +10,18 @@ from scipy import ndimage
 # TODO automate selecting files from DLC outputs
 
 coordinates_path = r'coordinates_flip'
-
+results_path = r'Adults_flip\SocialPref'
 
 for index,csv_file in enumerate(os.listdir(coordinates_path)):
     
     csv_file_path = os.path.join(coordinates_path, csv_file)
 
-    subfolder_name = ' '.join(csv_file.split(' ')[2:4])
+    subfolder_name = ' '.join(csv_file.split(' ')[1:4])
+
+    result_subfolder_path = os.path.join(results_path, subfolder_name)
+    if os.path.exists(result_subfolder_path):
+        print(f"Results for {subfolder_name} already exist. Skipping...")
+        continue
 
 
     df = pd.read_csv(csv_file_path)
@@ -186,14 +191,14 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             fig, ax = plt.subplots(1, 1, subplot_kw={'projection': 'polar'})
             ax.bar(self.bins[:-1], self.hist1, width=(self.bins[1] - self.bins[0]), bottom=0.0, color='blue')
             ax.set_yticklabels([])
-            ax.set_title(f'F_{subfolder_name}')
+            ax.set_title(f'{subfolder_name}')
             max_val = self.hist1.max()
             ax.set_ylim(0, max_val)
             
             self.output_folder = 'Adults_flip'
             os.makedirs(self.output_folder, exist_ok=True)
 
-            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'F_{subfolder_name}')
+            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'{subfolder_name}')
             os.makedirs(sub_folder, exist_ok=True)
 
             df_angles = pd.DataFrame({'Time (seconds)': self.seconds, 'Angles_SC': self.angles1, 'Angles_NSC': self.angles2, 'Angles_neither': self.angles3})
@@ -348,7 +353,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             self.output_folder = 'Adults_flip'
             os.makedirs(self.output_folder, exist_ok=True)
 
-            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'F_{subfolder_name}')
+            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'{subfolder_name}')
             os.makedirs(sub_folder, exist_ok=True)
 
             plt.savefig(os.path.join(sub_folder,'tail_motion_analysis_smooth.png'))
@@ -363,7 +368,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             self.output_folder = 'Adults_flip'
             os.makedirs(self.output_folder, exist_ok=True)
 
-            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'F_{subfolder_name}')
+            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'{subfolder_name}')
             os.makedirs(sub_folder, exist_ok=True)
 
             
@@ -427,7 +432,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             self.output_folder = 'Adults_flip'
             os.makedirs(self.output_folder, exist_ok=True)
 
-            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'F_{subfolder_name}')
+            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'{subfolder_name}')
             os.makedirs(sub_folder, exist_ok=True)
             self.csv_file= 'Chamber_time.csv'   
             
@@ -459,7 +464,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             self.output_folder = 'Adults_flip'
             os.makedirs(self.output_folder, exist_ok=True)
 
-            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'F_{subfolder_name}')
+            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'{subfolder_name}')
             os.makedirs(sub_folder, exist_ok=True)
 
             plt.savefig(os.path.join(sub_folder,'chamber_time.png'))
