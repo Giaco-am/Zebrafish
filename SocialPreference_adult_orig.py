@@ -406,12 +406,12 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
         def plot_chamber_durations(self):
             total_time = len(self.point4) / 30
             segments = {'SC': [], 'NSC': [], 'Neither': []}
+            raw_segments = {'SC': [], 'NSC': [], 'Neither': []}
 
             current_box = None
             segment_start_time = 0
             previous_box = None
-            
-            
+
             for i, point in enumerate(self.point4):
                 if is_fish_in_box_sc(point, self.box_sc):
                     new_box = 'SC'
@@ -422,46 +422,73 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
 
                 if new_box != current_box:
                     if current_box is not None:
-            
-                        if (i / 30) - segment_start_time < 5 and previous_box is not None:
-            
+                        raw_segments[current_box].append((segment_start_time, i / 30))
+                        if (i / 30) - segment_start_time < 8 and previous_box is not None:
                             segments[previous_box][-1] = (segments[previous_box][-1][0], i / 30)
                         else:
-            
                             segments[current_box].append((segment_start_time, i / 30))
                             previous_box = current_box
                         segment_start_time = i / 30
                     current_box = new_box
 
-            
             if current_box is not None:
                 segments[current_box].append((segment_start_time, total_time))
+                raw_segments[current_box].append((segment_start_time, total_time))
 
-            self.output_folder = 'adults_orig'
+            self.output_folder = 'Adults_orig'
             os.makedirs(self.output_folder, exist_ok=True)
 
             sub_folder = os.path.join(self.output_folder, 'SocialPref', f'{subfolder_name}')
             os.makedirs(sub_folder, exist_ok=True)
-            self.csv_file= 'Chamber_time.csv'   
-            
+            self.csv_file= 'Chamber_time.csv'
+            self.raw_csv_file= 'Raw_Chamber_time.csv'
+
+            self.csv_file= os.path.join(sub_folder, self.csv_file)
+            self.raw_csv_file= os.path.join(sub_folder, self.raw_csv_file)
+
+            # Write the thresholded data
+            self.write_to_csv(self.csv_file, segments)
+
+            # Write the raw data
+            self.write_to_csv(self.raw_csv_file, raw_segments)
+
+            # Plot the thresholded data
+            self.plot_data(segments, os.path.join(sub_folder,'chamber_time.png'))
+
+            # Plot the raw data
+            self.plot_data(raw_segments, os.path.join(sub_folder,'raw_chamber_time.png'))
 
         
-            self.csv_file= os.path.join(sub_folder, self.csv_file)
 
-
+        def write_to_csv(self, file_path, segments):
             flat_segments = [(box, start, end) for box, segment_list in segments.items() for start, end in segment_list]
-
-
             sorted_segments = sorted(flat_segments, key=lambda x: x[1])
 
-            with open(self.csv_file, 'w', newline='') as csvfile:
+            # Initialize dictionary to store total time and number of visits for each chamber
+            chamber_data = {'SC': {'total_time': 0, 'visits': 0}, 'NSC': {'total_time': 0, 'visits': 0}, 'Neither': {'total_time': 0, 'visits': 0}}
+
+            # Calculate total time and number of visits for each chamber
+            for box, start_time, end_time in sorted_segments:
+                duration = end_time - start_time
+                chamber_data[box]['total_time'] += duration
+                chamber_data[box]['visits'] += 1
+
+            # Calculate average time for each chamber
+            for box in chamber_data:
+                if chamber_data[box]['visits'] > 0:
+                    chamber_data[box]['average_time'] = chamber_data[box]['total_time'] / chamber_data[box]['visits']
+                else:
+                    chamber_data[box]['average_time'] = 0
+
+            with open(file_path, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
-                writer.writerow(['Chamber', 'Start Time', 'End Time'])
+                writer.writerow(['Chamber', 'Start Time', 'End Time', 'Average Time'])
                 for box, start_time, end_time in sorted_segments:
-                    writer.writerow([box, start_time, end_time])
+                    writer.writerow([box, start_time, end_time, chamber_data[box]['average_time']])
 
+        
 
-            
+        def plot_data(self, segments, file_path):
             for box, segment_list in segments.items():
                 for segment in segment_list:
                     start_time, end_time = segment
@@ -471,17 +498,8 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             plt.xlabel('Time (seconds)')
             plt.ylabel('Chambers')
             plt.title('Time spent in each chamber')
-
-            self.output_folder = 'adults_orig'
-            os.makedirs(self.output_folder, exist_ok=True)
-
-            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'{subfolder_name}')
-            os.makedirs(sub_folder, exist_ok=True)
-
-            plt.savefig(os.path.join(sub_folder,'chamber_time.png'))
+            plt.savefig(file_path)
             plt.close()
-
-            #plt.show()
 
     
         
