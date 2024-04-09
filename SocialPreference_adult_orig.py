@@ -134,6 +134,11 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
         angle_rad = np.arccos(dot_product / magnitude)
         angle_deg = np.degrees(angle_rad)
 
+        cross_product = np.cross(vec1, vec2)
+        if cross_product < 0:
+        
+            angle_deg = 360 - angle_deg
+
         return angle_deg
 
     class HeadOrientationAnalysis:
@@ -167,7 +172,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
                     self.angles2.append(np.nan)
                     self.angles3.append(calculate_angle(p1, p2, p3, p4))
                 self.seconds.append(i/30)
-            #self.process_data()
+            self.process_data()
             self.plot_and_save_data()
 
         def process_data(self):
@@ -177,10 +182,10 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             self.angles3.extend([np.nan] * (max_len - len(self.angles3)))
             self.seconds.extend(range(len(self.angles1), max_len))
 
-            self.n_bins = 40
+            self.n_bins = int(np.sqrt(len(self.angles1)))
             self.bins = np.linspace(0, 2 * np.pi, self.n_bins, endpoint=True)
 
-            self.hist1, _ = np.histogram(self.angles1, bins=self.bins)
+            self.hist1, _ = np.histogram(np.radians(self.angles1), bins=self.bins)
             self.hist2, _ = np.histogram(self.angles2, bins=self.bins)
             self.hist3, _ = np.histogram(self.angles3, bins=self.bins)
 
@@ -189,10 +194,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
         def plot_and_save_data(self):
 
            
-            self.n_bins = 40
-            self.bins = np.linspace(0, 2 * np.pi, self.n_bins, endpoint=True)
-
-            self.hist1, _ = np.histogram(np.radians(self.angles1), bins=self.bins)
+            
     
             fig, ax = plt.subplots(1, 1, subplot_kw={'projection': 'polar'})
             ax.bar(self.bins[:-1], self.hist1, width=(self.bins[1] - self.bins[0]), bottom=0.0, color='blue')
