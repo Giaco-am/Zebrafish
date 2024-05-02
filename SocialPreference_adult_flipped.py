@@ -130,7 +130,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-    def calculate_angle(dot1, dot2, dot3, dot4):
+    def calculate_angle_head(dot1, dot2, dot3, dot4):
         vec1 = np.array(dot1) - np.array(dot2)
         vec2 = np.array(dot3) - np.array(dot4)
 
@@ -143,6 +143,16 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
         if cross_product < 0:
         
             angle_deg = 360 - angle_deg
+        return angle_deg
+    
+    def calculate_angle_tail(dot1, dot2, dot3, dot4):
+        vec1 = np.array(dot1) - np.array(dot2)
+        vec2 = np.array(dot3) - np.array(dot4)
+
+        dot_product = np.dot(vec1, vec2)
+        magnitude = np.linalg.norm(vec1) * np.linalg.norm(vec2)
+        angle_rad = np.arccos(dot_product / magnitude)
+        angle_deg = np.degrees(angle_rad)
         return angle_deg
 
     class HeadOrientationAnalysis:
@@ -164,17 +174,17 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
 
             for i, (p1, p2, p3, p4) in enumerate(zip(self.point1, self.point2, self.point3, self.point4)):
                 if is_fish_in_box_sc(p4, self.box_sc):
-                    self.angles1.append(calculate_angle(p1, p2, p3, p4))
+                    self.angles1.append(calculate_angle_head(p1, p2, p3, p4))
                     self.angles2.append(np.nan)
                     self.angles3.append(np.nan)
                 elif is_fish_in_box_nsc(p4, self.box_nsc):
                     self.angles1.append(np.nan)
-                    self.angles2.append(calculate_angle(p1, p2, p3, p4))
+                    self.angles2.append(calculate_angle_head(p1, p2, p3, p4))
                     self.angles3.append(np.nan)
                 else:
                     self.angles1.append(np.nan)
                     self.angles2.append(np.nan)
-                    self.angles3.append(calculate_angle(p1, p2, p3, p4))
+                    self.angles3.append(calculate_angle_head(p1, p2, p3, p4))
                 self.seconds.append(i/30)
             self.process_data()
             self.plot_and_save_data()
@@ -252,7 +262,7 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
 
             for i, (p3, p4, p5, p6) in enumerate(zip(self.point3, self.point4, self.point5, self.point6)):
                 current_chamber = 'SC' if is_fish_in_box_sc(p4, self.box_sc) else 'NSC' if is_fish_in_box_nsc(p4, self.box_nsc) else 'neither'
-                self.angles.append(calculate_angle(p3, p4, p5, p6))
+                self.angles.append(calculate_angle_tail(p3, p4, p5, p6))
 
                 if self.prev_angle is not None:
                     angle_diff = abs(self.angles[-1] - self.prev_angle)

@@ -9,7 +9,7 @@ from scipy import ndimage
 
 
 coordinates_path = r'young_coord_orig'
-results_path = r'Young_orig\SocialPref'
+results_path = r'test_tailmotion\young'            #'Young_orig\SocialPref'
 
 for index,csv_file in enumerate(os.listdir(coordinates_path)):
     csv_file_path = os.path.join(coordinates_path, csv_file)
@@ -134,14 +134,14 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
         angle_rad = np.arccos(dot_product / magnitude)
         angle_deg = np.degrees(angle_rad)
 
-        cross_product = np.cross(vec1, vec2)
-        if cross_product < 0:
+        #cross_product = np.cross(vec1, vec2)
+        #if cross_product < 0:
         
-            angle_deg = 360 - angle_deg
+        #    angle_deg = 360 - angle_deg
 
         return angle_deg
 
-    class HeadOrientationAnalysis:
+    #class HeadOrientationAnalysis:
         def __init__(self, x_fixed, y_fixed, x_hor, y_hor, x_head, y_head, x_body, y_body, x_box1, y_box1, x_box2, y_box2, x_box3, y_box3, x_box4, y_box4,
                     x_box5, y_box5, x_box6, y_box6, x_box7, y_box7, x_box8, y_box8):
 
@@ -295,11 +295,11 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
 
             self.periods = 1
             self.angles_diff = pd.Series(self.angles).diff(periods=self.periods)
-
+            print(self.angles)
             #self.process_data()
             self.plot_tail_motion_smooth()
-            self.save_data()
-            self.plot_chamber_durations()
+            #self.save_data()
+            #self.plot_chamber_durations()
 
         def process_data(self):
             max_len = max(len(self.angles1), len(self.angles2), len(self.angles3))
@@ -358,10 +358,10 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
             handles.append(Line2D([0], [0], color='yellow', linestyle='-', linewidth=0.5))
             labels = ['Zebrafish in SC', 'Zebrafish in NSC','Zebrafish in Neither', 'Freezing']
             plt.legend(handles, labels, loc='upper left')
-            self.output_folder = 'Young_orig'
+            self.output_folder = 'test_tailmotion'           #'Young_orig'
             os.makedirs(self.output_folder, exist_ok=True)
 
-            sub_folder = os.path.join(self.output_folder, 'SocialPref', f'{subfolder_name}')
+            sub_folder = os.path.join(self.output_folder, 'young', f'{subfolder_name}')   #'SocialPref', f'{subfolder_name}')
             os.makedirs(sub_folder, exist_ok=True)
 
             plt.savefig(os.path.join(sub_folder,'tail_motion_analysis_smooth.png'))
@@ -505,9 +505,9 @@ for index,csv_file in enumerate(os.listdir(coordinates_path)):
         
     if __name__ == "__main__":
 
-        head_analysis = HeadOrientationAnalysis( x_fixed, y_fixed, x_hor, y_hor, x_head, y_head, x_body, y_body, x_box1, y_box1, x_box2, y_box2, x_box3, y_box3, x_box4, y_box4,
-                                            x_box5, y_box5, x_box6, y_box6, x_box7, y_box7, x_box8, y_box8)
-        head_analysis.analyze()
+        #head_analysis = HeadOrientationAnalysis( x_fixed, y_fixed, x_hor, y_hor, x_head, y_head, x_body, y_body, x_box1, y_box1, x_box2, y_box2, x_box3, y_box3, x_box4, y_box4,
+        #                                    x_box5, y_box5, x_box6, y_box6, x_box7, y_box7, x_box8, y_box8)
+        #head_analysis.analyze()
 
         tail_analysis = TailMotionAnalysis( x_head, y_head, x_body, y_body, x_tail, y_tail, x_tailend, y_tailend, x_box1, y_box1, x_box2, y_box2, x_box3, y_box3, x_box4, y_box4,
                                            x_box5, y_box5, x_box6, y_box6, x_box7, y_box7, x_box8, y_box8)
